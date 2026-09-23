@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PL Brand System - Phase 1</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Sarabun', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800">
+
+    <!-- Header Navigation -->
+    <header class="bg-slate-900 text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <i data-lucide="package-search" class="w-8 h-8 text-blue-400"></i>
+                <div>
+                    <h1 class="text-xl font-bold tracking-wide">PL Brand System</h1>
+                    <p class="text-xs text-slate-400">ระบบตรวจสอบ Packing List และค้นหา Brand (Phase 1)</p>
+                </div>
+            </div>
+            <span class="bg-blue-900/60 border border-blue-500/30 text-blue-300 text-xs px-3 py-1 rounded-full font-medium">
+                Phase 1 Active
+            </span>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-8">
+
+        <!-- SECTION 1: UPLOAD AREA -->
+        <section id="uploadSection" class="bg-white rounded-xl shadow-sm border border-slate-200 p-8 mb-8 transition-all">
+            <h2 class="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                <i data-lucide="upload-cloud" class="w-5 h-5 text-blue-600"></i>
+                อัปโหลด Packing List
+            </h2>
+
+            <!-- Dropzone -->
+            <div id="dropZone" class="border-2 border-dashed border-slate-300 hover:border-blue-500 bg-slate-50/50 hover:bg-blue-50/30 rounded-xl p-10 text-center cursor-pointer transition-all">
+                <input type="file" id="fileInput" accept=".pdf" class="hidden">
+                <div class="flex flex-col items-center gap-3">
+                    <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-1">
+                        <i data-lucide="file-up" class="w-8 h-8"></i>
+                    </div>
+                    <div>
+                        <p class="text-base font-medium text-slate-700">ลากไฟล์ PDF มาวางที่นี่ หรือ <span class="text-blue-600 underline">คลิกเพื่อเลือกไฟล์</span></p>
+                        <p class="text-xs text-slate-400 mt-1">รองรับเฉพาะไฟล์เอกสารรูปแบบ .PDF เท่านั้น</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Selected File Info -->
+            <div id="fileDetails" class="hidden mt-6 bg-slate-100 rounded-lg p-4 flex items-center justify-between border border-slate-200">
+                <div class="flex items-center gap-3">
+                    <i data-lucide="file-text" class="w-8 h-8 text-blue-600"></i>
+                    <div>
+                        <p id="fileName" class="text-sm font-semibold text-slate-800"></p>
+                        <p id="fileSize" class="text-xs text-slate-500"></p>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <button id="cancelBtn" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-lg text-sm font-medium transition-all flex items-center gap-1">
+                        <i data-lucide="x" class="w-4 h-4"></i> ยกเลิก
+                    </button>
+                    <button id="processBtn" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-all shadow-sm flex items-center gap-1">
+                        <i data-lucide="play" class="w-4 h-4"></i> เริ่มตรวจสอบ
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: PROCESSING STATUS -->
+        <section id="statusSection" class="hidden bg-white rounded-xl shadow-sm border border-slate-200 p-8 mb-8 text-center">
+            <div class="flex flex-col items-center justify-center py-6">
+                <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent mb-4"></div>
+                <h3 id="statusText" class="text-lg font-semibold text-slate-800">กำลังอ่านไฟล์...</h3>
+                <p id="statusSubText" class="text-sm text-slate-500 mt-1">ระบบกำลัง Extract ข้อมูล และตรวจสอบความถูกต้อง</p>
+            </div>
+        </section>
+
+        <!-- SECTION 3: PREVIEW & EDIT DATA -->
+        <section id="previewSection" class="hidden space-y-6">
+            
+            <!-- Metadata Bar -->
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-4">
+                <div>
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Document ID</span>
+                    <span id="metaDocId" class="text-xl font-bold text-blue-600">PL-20260923-0001</span>
+                </div>
+                <div>
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">ชื่อไฟล์ต้นฉบับ</span>
+                    <span id="metaFileName" class="text-sm font-medium text-slate-700">-</span>
+                </div>
+                <div>
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">เวลาอัปโหลด</span>
+                    <span id="metaUploadTime" class="text-sm font-medium text-slate-700">-</span>
+                </div>
+                <div>
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">สถานะการประมวลผล</span>
+                    <span id="metaProcessType" class="inline-flex items-center gap-1 bg-green-100 text-green-700 text-xs px-2.5 py-1 rounded-full font-semibold">
+                        <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> อ่านข้อมูลสำเร็จ
+                    </span>
+                </div>
+            </div>
+
+            <!-- Table Preview -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
+                    <div>
+                        <h3 class="text-base font-bold text-slate-800">ตารางตรวจสอบข้อมูลที่สกัดได้ (Extracted Data)</h3>
+                        <p class="text-xs text-slate-500">คุณสามารถแก้ไขข้อมูลที่ไม่ถูกต้องได้โดยการดับเบิลคลิกหรือแก้ไขในช่องตาราง</p>
+                    </div>
+                    <button id="confirmDataBtn" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-semibold transition-all shadow-sm flex items-center gap-2">
+                        <i data-lucide="check-check" class="w-4 h-4"></i> ยืนยันข้อมูล
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700 border-b border-slate-200 font-semibold uppercase tracking-wider">
+                                <th class="p-3 text-center">#</th>
+                                <th class="p-3">SAP PO</th>
+                                <th class="p-3">SAP NO.</th>
+                                <th class="p-3">DESCRIPTION</th>
+                                <th class="p-3 text-right">TOTAL QTY</th>
+                                <th class="p-3 text-right">QTY (PCS)</th>
+                                <th class="p-3 text-right">QTY (CTNS)</th>
+                                <th class="p-3 text-right">N.W. (KG)</th>
+                                <th class="p-3 text-right">G.W. (KG)</th>
+                                <th class="p-3">MEAS.</th>
+                                <th class="p-3 text-center">STATUS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataTableBody" class="divide-y divide-slate-200">
+                            <!-- Table rows injected via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
